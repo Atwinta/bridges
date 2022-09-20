@@ -24,7 +24,7 @@ abstract class Bridge implements Contracts\Bridge
         string $host,
         string $scheme = 'https',
         ?string $base_path = null,
-        string $accept = 'application/json',
+        string $accept = 'application/json'
     ) {
         $this->factory = $factory;
 
@@ -39,12 +39,18 @@ abstract class Bridge implements Contracts\Bridge
 
     protected function resetRequest(): void
     {
-        $this->request = $this->authorize(
+        $request = $this->authorize(
             $this->factory
                 ->baseUrl("$this->scheme://$this->host".($this->base_path !== null ? "/$this->base_path" : ''))
-                ->accept($this->accept)
-                ->throw(),
+                ->accept($this->accept),
         );
+
+        // Обработчик ошибок для laravel 9
+        if (method_exists($request, "throw")) {
+            $request->throw();
+        }
+
+        $this->request = $request;
     }
 
     protected function authorize(PendingRequest $request): PendingRequest
