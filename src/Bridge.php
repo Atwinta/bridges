@@ -45,8 +45,12 @@ abstract class Bridge implements Contracts\Bridge
                 ->accept($this->accept),
         );
 
-        // Обработчик ошибок для laravel 9
-        if (method_exists($request, "throw")) {
+        /** 
+         * Обработчик ошибок для laravel 9
+         * 
+         * @phpstan-ignore-next-line
+         */
+        if (method_exists($request, 'throw')) {
             $request->throw();
         }
 
