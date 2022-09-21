@@ -4,5 +4,4 @@ namespace Atwinta\Bridges\Contracts;
 
 interface Bridge
 {
-
 }
