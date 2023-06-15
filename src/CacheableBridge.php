@@ -11,6 +11,9 @@ use Kevinrob\GuzzleCache\Strategy\PrivateCacheStrategy;
 
 abstract class CacheableBridge extends Bridge
 {
+    /**
+     * @throws \RuntimeException
+     */
     protected function resetRequest(): void
     {
         parent::resetRequest();
