@@ -2,6 +2,7 @@
 
 namespace Atwinta\Bridges;
 
+use Atwinta\Bridges\Contracts\Bridge as BridgeInterface;
 use Exception;
 use GuzzleHttp\RequestOptions;
 use Illuminate\Http\Client\Factory;
@@ -9,7 +10,7 @@ use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Log;
 
-abstract class Bridge implements Contracts\Bridge
+abstract class Bridge implements BridgeInterface
 {
     protected PendingRequest $request;
 
@@ -21,11 +22,11 @@ abstract class Bridge implements Contracts\Bridge
 
     protected string $accept;
 
-    private Factory $factory;
+    protected Factory $factory;
 
-    private bool $debug = false;
+    protected bool $debug = false;
 
-    private string $logChannel = 'stack';
+    protected string $logChannel = 'stderr';
 
     public function __construct(
         Factory $factory,
@@ -45,7 +46,7 @@ abstract class Bridge implements Contracts\Bridge
         $this->resetRequest();
     }
 
-    private function getBaseUrl(): string
+    protected function getBaseUrl(): string
     {
         return rtrim(
             trim("{$this->scheme}://{$this->host}", '/')
@@ -57,7 +58,7 @@ abstract class Bridge implements Contracts\Bridge
     /**
      * @phpstan-param array<int|string,mixed> $context
      */
-    private function writeLogs(string $message, array $context = [], bool $isError = false): void
+    protected function writeLogs(string $message, array $context = [], bool $isError = false): void
     {
         if ($isError) {
             Log::channel($this->logChannel)->error($message, $context);
@@ -95,20 +96,14 @@ abstract class Bridge implements Contracts\Bridge
         return $request;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function setDebug(bool $debug)
+    public function setDebug(bool $debug): static
     {
         $this->debug = $debug;
 
         return $this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function setLogChannel(string $logChannel)
+    public function setLogChannel(string $logChannel): static
     {
         $this->logChannel = $logChannel;
 
@@ -133,7 +128,8 @@ abstract class Bridge implements Contracts\Bridge
                 $this->writeLogs(
                     'Успешная отправка запроса',
                     [
-                        'payload' => json_encode($data[RequestOptions::JSON] ?? $data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE),
+                        'url' => $this->getBaseUrl().'/'.trim("{$path}", '/'),
+                        'request' => json_encode($data[RequestOptions::JSON] ?? $data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE),
                         'tracing' => $tracing,
                         'response' => $response->__toString(),
                     ]
@@ -142,14 +138,15 @@ abstract class Bridge implements Contracts\Bridge
 
             if (! $response->successful()) {
                 $message = 'При отправке запроса '
-                    .$this->getBaseUrl()
-                    .'/'
-                    .trim("{$path}", '/')
-                    .' получен ответ со статусом '
-                    .$response->status();
+                           .$this->getBaseUrl()
+                           .'/'
+                           .trim("{$path}", '/')
+                           .' получен ответ со статусом '
+                           .$response->status();
                 $this->writeLogs(
                     $message,
                     [
+                        'url' => $this->getBaseUrl().'/'.trim("{$path}", '/'),
                         'request' => json_encode($data[RequestOptions::JSON] ?? $data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE),
                         'response' => $response->__toString(),
                     ],

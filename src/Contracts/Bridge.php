@@ -6,19 +6,9 @@ use Illuminate\Http\Client\Response;
 
 interface Bridge
 {
-    /**
-     * TODO: для пхп 8+ добавить сигнатуру методу
-     *
-     * @return static
-     */
-    public function setDebug(bool $debug);
+    public function setDebug(bool $debug): static;
 
-    /**
-     * TODO: для пхп 8+ добавить сигнатуру методу
-     *
-     * @return static
-     */
-    public function setLogChannel(string $logChannel);
+    public function setLogChannel(string $logChannel): static;
 
     /**
      * @phpstan-param array<int|string,mixed> $data
